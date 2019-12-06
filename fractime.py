@@ -156,6 +156,9 @@ minute = int(strftime("%M", localtime()))
 #hour   = int(sys.argv[1].split(':')[0])
 #minute = int(sys.argv[1].split(':')[1])
 
+# show the digit clock
+print(strftime("%H:%M", localtime()))
+
 # this kind of nonsense only really makes sense when speaking in 12-hour format,
 # so knock 12 off the hour if it's past noon
 if hour >= 12:
@@ -188,6 +191,5 @@ if minute == 0:
 		print(str(hour), "o'clock")
 		sys.exit(0)
 
-print(strftime("%H:%M", localtime()))
 #print_time(minute, hour)
 print_time_words(minute, hour)

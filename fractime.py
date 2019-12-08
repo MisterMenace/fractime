@@ -147,7 +147,7 @@ def main():
 	parser.set_defaults(lang=os.environ['LANG'][:2])
 	parser.set_defaults(fmt="words")
 	parser.add_option("-l", "--lang", dest="lang", help="valid options: 'de', 'en'")
-	parser.add_option("-f", "--fmt", "--format", "-o", "--out", "--output", dest="fmt", help="valid options: 'w', 'words', 'Wörter', 'n', 'numbers', 'Ziffern', 'b', 'both', 'beides'")
+	parser.add_option("-f", "--fmt", "--format", "-o", "--out", "--output", dest="fmt", help="valid options: 'w', 'words', 'Wörter', 'n', 'numbers', 'z', 'Ziffern', 'b', 'both', 'beides'")
 
 	(options, args) = parser.parse_args()
 
@@ -198,7 +198,7 @@ def main():
 			print(str(hour), "o'clock")
 			sys.exit(0)
 
-	if options.fmt in ['n', 'numbers', 'Ziffern', 'ziffern']:
+	if options.fmt in ['n', 'numbers', 'z', 'Ziffern', 'ziffern']:
 		print_time(minute, hour)
 	elif options.fmt in ['w', 'words', 'Wörter', 'wörter']:
 		print_time_words(minute, hour, options.lang)

@@ -146,7 +146,7 @@ def main():
 	## pull lang from env, unless specified
 	parser.set_defaults(lang=os.environ['LANG'][:2])
 	parser.set_defaults(fmt="words")
-	parser.add_option("-l", "--lang", dest="lang")
+	parser.add_option("-l", "--lang", dest="lang", help="valid options: 'de', 'en'")
 	parser.add_option("-f", "--fmt", "--format", "-o", "--out", "--output", dest="fmt", help="valid options: 'w', 'words', 'Wörter', 'n', 'numbers', 'Ziffern', 'b', 'both', 'beides'")
 
 	(options, args) = parser.parse_args()

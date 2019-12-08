@@ -151,8 +151,9 @@ def main():
 
 	(options, args) = parser.parse_args()
 
-	if options.lang != "de":  # we only support german and english
-		options.lang = "en"
+	# we only support german and english
+	if options.lang not in ['de', 'en']:
+		options.lang = 'en'
 
 	# call localtime() just once and store the values
 	cur_time = strftime("%H:%M", localtime())

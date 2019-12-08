@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
+import re
+from optparse import OptionParser
 from time import localtime, strftime
 from fractions import Fraction
 
@@ -106,19 +108,15 @@ wordmap_digits_de = {
 }
 
 def print_time(minute, hour):
-	frac = Fraction(minute,60)
-	print(frac, hour+1)
+	print(Fraction(minute,60), 1 if hour == 12 else hour+1)
 
-def print_time_words(minute, hour):
+def print_time_words(minute, hour, lang):
 	# determine the fraction of the hour that's passed
 	frac = Fraction(minute,60)
 
 	# natural languages, amirite?
 	if lang == "de":
-		if hour == 12 or hour == 0:
-			next_hour = wordmap_digits_de[hour+1] + 's' # Eins
-		else:
-			next_hour = wordmap_digits_de[hour+1]
+		next_hour = 'eins' if hour == 0 or hour == 12 else wordmap_digits_de[hour+1]
 
 		numerator = wordmap_digits_de[frac.numerator]
 		denominator = wordmap_de[frac.denominator]
@@ -129,7 +127,7 @@ def print_time_words(minute, hour):
 
 		print(numerator, denominator, next_hour)
 	elif lang == "en":
-		next_hour = wordmap_digits_en[hour+1]
+		next_hour = 'one' if hour == 0 or hour == 12 else wordmap_digits_en[hour+1]
 		if frac.numerator == 1:
 			if frac.denominator == 2:   # half, not one-half
 				print("half", next_hour)
@@ -142,54 +140,73 @@ def print_time_words(minute, hour):
 
 		print(numerator, "-", denominator, " ", next_hour, sep="")
 
-# set lang by reading locale env var
-lang = os.environ['LANG'][:2]
-#lang = "en"
+def main():
+	# parse command line options
+	parser = OptionParser()
+	## pull lang from env, unless specified
+	parser.set_defaults(lang=os.environ['LANG'][:2])
+	parser.set_defaults(fmt="words")
+	parser.add_option("-l", "--lang", dest="lang")
+	parser.add_option("-f", "--fmt", "--format", "-o", "--out", "--output", dest="fmt", help="valid options: 'w', 'words', 'Wörter', 'n', 'numbers', 'Ziffern', 'b', 'both', 'beides'")
 
-if lang != "de":  # we only support german and english
-	lang = "en"
+	(options, args) = parser.parse_args()
 
-hour   = int(strftime("%H", localtime()))
-minute = int(strftime("%M", localtime())) 
+	if options.lang != "de":  # we only support german and english
+		options.lang = "en"
 
-# for testing
-#hour   = int(sys.argv[1].split(':')[0])
-#minute = int(sys.argv[1].split(':')[1])
+	# call localtime() just once and store the values
+	cur_time = strftime("%H:%M", localtime())
+	real_hour = int(cur_time.split(':')[0])
+	minute    = int(cur_time.split(':')[1])
 
-# show the digit clock
-print(strftime("%H:%M", localtime()))
+	# for testing – if a valid time was given on the command line, override the real time
+	valid_time = re.compile(r"^[0-2]?[0-9]:[0-5][0-9]$")
+	for arg in args:
+		if valid_time.match(arg):
+			real_hour = int(arg.split(':')[0])
+			minute    = int(arg.split(':')[1])
 
-# this kind of nonsense only really makes sense when speaking in 12-hour format,
-# so knock 12 off the hour if it's past noon
-if hour >= 12:
-	hour -= 12
+	# show the digital clock – real or imagined, depending on command line input
+	print("%02u:%02u" % (real_hour, minute))
 
-# edge case top of the hour, just print it out
-if minute == 0:
-	# corner cases: 12:00 and 00:00
-	#if int(sys.argv[1].split(':')[0]) == 12:
-	if int(strftime("%H", localtime())) == 12:
-		if lang == "de":
-			print("Mittag")
+	# this kind of nonsense only really makes sense when speaking in 12-hour format,
+	# so limit the hour value to the first twelve before printing anything out
+	hour = 12 if real_hour == 12 else real_hour % 12
+
+	# edge case top of the hour, just print it out
+	if minute == 0:
+		# corner cases: 12:00 and 00:00
+		if hour == 12:
+			if options.lang == "de":
+				print("Mittag")
+				sys.exit(0)
+			if options.lang == "en":
+				print("12 Noon")
+				sys.exit(0)
+		if hour == 0:
+			if options.lang == "de":
+				print("Mitternacht")
+				sys.exit(0)
+			if options.lang == "en":
+				print("12 Midnight")
+				sys.exit(0)
+
+		if options.lang == "de":
+			print(str(hour), "Uhr")
 			sys.exit(0)
-		if lang == "en":
-			print("12 Noon")
-			sys.exit(0)
-	#if int(sys.argv[1].split(':')[0]) == 0:
-	if int(strftime("%H", localtime())) == 0:
-		if lang == "de":
-			print("Mitternacht")
-			sys.exit(0)
-		if lang == "en":
-			print("12 Midnight")
+		if options.lang == "en":
+			print(str(hour), "o'clock")
 			sys.exit(0)
 
-	if lang == "de":
-		print(str(hour), "Uhr")
-		sys.exit(0)
-	if lang == "en":
-		print(str(hour), "o'clock")
-		sys.exit(0)
+	if options.fmt in ['n', 'numbers', 'Ziffern', 'ziffern']:
+		print_time(minute, hour)
+	elif options.fmt in ['w', 'words', 'Wörter', 'wörter']:
+		print_time_words(minute, hour, options.lang)
+	elif options.fmt in ['b', 'both', 'beides']:
+		print_time(minute, hour)
+		print_time_words(minute, hour, options.lang)
+	else:
+		print_time_words(minute, hour, options.lang)
 
-#print_time(minute, hour)
-print_time_words(minute, hour)
+if __name__ == "__main__":
+    main()

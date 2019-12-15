@@ -167,6 +167,11 @@ def main():
 			real_hour = int(arg.split(':')[0])
 			minute    = int(arg.split(':')[1])
 
+			# there's no valid time input past 24:00. a true regex wizard could enforce this directly in the regex, but :shrug:
+			assert real_hour <= 24, "Valid times range from 00:00 to 24:00!"
+			if real_hour == 24:
+				assert minute == 00, "There's no valid time past 24:00!"
+
 	# show the digital clock – real or imagined, depending on command line input
 	print("%02u:%02u" % (real_hour, minute))
 
